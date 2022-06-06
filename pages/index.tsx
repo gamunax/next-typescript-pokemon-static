@@ -1,3 +1,4 @@
+import { Grid } from '@nextui-org/react';
 import type { NextPage } from 'next';
 // You should use getStaticProps when:
 //- The data required to render the page is available at build time ahead of a user’s request.
@@ -7,36 +8,41 @@ import type { NextPage } from 'next';
 import { GetStaticProps } from 'next';
 import { pokeApi } from '../api';
 import { Layout } from '../components/layouts';
-import { PokemonListDto } from '../interfaces';
+import { PokemonCard } from '../components/pokemon';
+import { PokemonListDto, SmallPokemon } from '../interfaces';
 
-const HomePage: NextPage = (props) => {
-  console.log(props);
+type Props = {
+  pokemons: SmallPokemon[];
+};
 
+const HomePage: NextPage<Props> = ({ pokemons }) => {
   return (
     <Layout title="Listado de Pokemos">
-      <ul>
-        <li>Pokémon</li>
-        <li>Pokémon</li>
-        <li>Pokémon</li>
-        <li>Pokémon</li>
-        <li>Pokémon</li>
-        <li>Pokémon</li>
-        <li>Pokémon</li>
-        <li>Pokémon</li>
-      </ul>
+      <Grid.Container gap={2} justify="flex-start">
+        {pokemons.map((pokemon) => (
+          <PokemonCard key={pokemon.id} pokemon={pokemon}></PokemonCard>
+        ))}
+      </Grid.Container>
     </Layout>
   );
 };
 
 export const getStaticProps: GetStaticProps = async (ctx) => {
   const { data } = await pokeApi.get<PokemonListDto>('/pokemon?limit=151');
-  console.log(data);
 
-  console.log('Hola mundo');
+  const pokemons: SmallPokemon[] = data.results.map(({ name, url }, id) => {
+    const pokemonId = id + 1;
+    return {
+      name,
+      url,
+      id: pokemonId,
+      img: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/${pokemonId}.svg`,
+    };
+  });
 
   return {
     props: {
-      pokemons: data.results,
+      pokemons,
     },
   };
 };
